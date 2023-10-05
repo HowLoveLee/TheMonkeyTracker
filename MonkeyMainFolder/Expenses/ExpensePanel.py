@@ -1,17 +1,13 @@
-# Make letters black whe highlighting a field, they look white and contrast wrong.
 import json
 import os
 import random
 import shutil
-import sys
 
 from PyQt6.QtCore import Qt, QDate
-from PyQt6.QtGui import QAction, QStandardItemModel, QStandardItem, QDoubleValidator, QPalette, QColor, QIcon
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QMenuBar, QMenu, QTableWidget, QTableWidgetItem,
-                             QVBoxLayout, QHBoxLayout, QWidget, QSplitter, QPushButton, QSizePolicy, QComboBox,
-                             QDateEdit, QItemDelegate, QHeaderView, QStyledItemDelegate, QLineEdit, QLabel, QFileDialog)
-
-from Stats import launch_view, viewStats
+from PyQt6.QtGui import QStandardItemModel, QStandardItem, QDoubleValidator, QPalette, QColor, QIcon
+from PyQt6.QtWidgets import (QWidget, QTableWidget, QVBoxLayout, QHBoxLayout, QComboBox,
+                             QPushButton, QSizePolicy, QLabel, QItemDelegate, QLineEdit, QStyledItemDelegate, QDateEdit,
+                             QFileDialog, QTableWidgetItem, QHeaderView)
 
 
 class MoneyItemDelegate(QStyledItemDelegate):
@@ -76,208 +72,156 @@ class DateDelegate(QItemDelegate):
         editor.setGeometry(option.rect)
 
 
-class MyWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowIcon(QIcon('images/icons8-monkey-96.png'))
-        # Create the menu bar
-        menubar = QMenuBar(self)
+class ExpensePanel(QWidget):
 
-        # Create menus
-        fileMenu = QMenu('File', self)
-        editMenu = QMenu('Edit', self)
-        clientServerMenu = QMenu('ClientServer', self)
+    def __init__(self, parent=None):
+        super(ExpensePanel, self).__init__(parent)
 
-        # Add actions to the File menu
-        openAction = QAction('Open', self)
-        saveAction = QAction('Save', self)
-        saveAsAction = QAction('Save As', self)
-        exportToExcel = QAction('Excel Export', self)
-        exportToPDF = QAction('PDF Export', self)
-        settings = QAction('Settings', self)
-        exitAction = QAction('Exit', self)
-        exitAction.triggered.connect(self.close)  # Connect the exit action to the window's close method
+        self.expenseTable = CustomTableWidget(1, 8)
+        self.totalExpensesLabel = QLabel("Total: $0.00")
+        self.committedTotalExpensesLabel = QLabel("Committed Total: $0.00")
 
-        fileMenu.addAction(openAction)
-        fileMenu.addSeparator()
-        fileMenu.addAction(saveAction)
-        fileMenu.addAction(saveAsAction)
-        fileMenu.addSeparator()
-        fileMenu.addAction(exportToExcel)
-        fileMenu.addAction(exportToPDF)
-        fileMenu.addSeparator()
-        fileMenu.addAction(settings)
-        fileMenu.addSeparator()
-        fileMenu.addAction(exitAction)
+        self.setupUi()
 
-        # Edit menu actions
-        undoEdit = QAction('Undo', self)
-        redoEdit = QAction('Redo', self)
-        cutEdit = QAction('Cut', self)
-        copyEdit = QAction('Copy', self)
-        pasteEdit = QAction('Paste', self)
-        selectAllEdit = QAction('Select All', self)
-        preferencesEdit = QAction('Preferences', self)
+    def setupExpenseTable(self, table):
+        table.setHorizontalHeaderLabels(
+            ['Type', 'Name', 'Summary', 'Due Date', 'Audit Date', 'Receipt', 'Total', 'Commit']
+        )
 
-        editMenu.addAction(undoEdit)
-        editMenu.addAction(redoEdit)
-        editMenu.addSeparator()
-        editMenu.addAction(cutEdit)
-        editMenu.addAction(copyEdit)
-        editMenu.addAction(pasteEdit)
-        editMenu.addSeparator()
-        editMenu.addAction(selectAllEdit)
-        editMenu.addSeparator()
-        editMenu.addAction(preferencesEdit)
+        # Set Money Delegate for the 'Total' column
+        delegate = MoneyItemDelegate(table)
+        table.setItemDelegateForColumn(6, delegate)
 
-        # Add the menus to the menu bar
-        menubar.addMenu(fileMenu)
-        menubar.addMenu(editMenu)
-        menubar.addMenu(clientServerMenu)
+        # Set column widths for the Expense table
+        table.setColumnWidth(3, 120)
+        table.setColumnWidth(4, 120)
+        table.setColumnWidth(5, 100)  # Receipt column
+        table.setColumnWidth(6, 100)  # Total column
+        table.setColumnWidth(7, 100)  # Commit column
 
-        # Set the menu bar for the window
-        self.setMenuBar(menubar)
 
-        # Create panels for expenses and income
-        self.expensePanel, self.expenseTable = self.createPanelWithTable(isExpense=True)
-        self.incomePanel, self.incomeTable = self.createPanelWithTable(isExpense=False)
+        # Set other columns to stretch
+        for index in [0, 1, 2]:
+            table.horizontalHeader().setSectionResizeMode(index, QHeaderView.ResizeMode.Stretch)
 
-        # Set DateDelegate for Expense and Income tables
-        expense_date_delegate = DateDelegate()
-        self.expenseTable.setItemDelegateForColumn(3, expense_date_delegate)
-        self.expenseTable.setItemDelegateForColumn(4, expense_date_delegate)
+        # Setup individual cell items/widgets based on each row
+        for i in range(3):  # Assuming 3 rows for the sake of demonstration
+            for j in range(8):
+                if j == 0:  # If it's the 'Type' column
+                    table.setCellWidget(i, j, self.createTypeDropdown())
 
-        income_date_delegate = DateDelegate()
-        self.incomeTable.setItemDelegateForColumn(1, income_date_delegate)
+                elif j == 3:  # If it's the 'Due Date' column
+                    date_editor = QDateEdit()
+                    date_editor.setDate(QDate.currentDate())
+                    date_editor.setDisplayFormat("dd/MM/yyyy")
+                    table.setCellWidget(i, j, date_editor)
 
-        # Set up the QSplitter to divide the main window horizontally
-        splitter = QSplitter(Qt.Orientation.Vertical, self)
-        splitter.addWidget(self.expensePanel)
-        splitter.addWidget(self.incomePanel)
+                elif j == 4:  # If it's the 'Audit Date' column
+                    date_editor = QDateEdit()
+                    date_editor.setDate(QDate.currentDate())
+                    date_editor.setDisplayFormat("dd/MM/yyyy")
+                    table.setCellWidget(i, j, date_editor)
 
-        initial_sizes = [100, -100]  # for demonstration purposes
-        splitter.setSizes(initial_sizes)
-        # Set the QSplitter as the central widget of the main window
-        self.setCentralWidget(splitter)
 
-        self.setWindowTitle("Monkey Tracker")
-        self.setGeometry(100, 100, 990, 700)
+                elif j == 5:
+                    receiptButton = QPushButton("No")
+                    receiptButton.clicked.connect(lambda _, b=receiptButton: self.receiptButtonClicked(b))
+                    table.setCellWidget(i, j, receiptButton)
+
+                elif j == 6:  # If it's the 'Total' column
+                    item = QTableWidgetItem()
+                    item.setText("0.00")  # default value
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignRight)
+                    table.setItem(i, j, item)
+
+                elif j == 7:  # If it's the 'Commit' column
+                    commitButton = QPushButton("Commit")
+                    commitButton.clicked.connect(lambda _, b=commitButton: self.commitButtonClicked(b))
+                    table.setCellWidget(i, j, commitButton)
+
+                else:
+                    table.setItem(i, j, QTableWidgetItem(" "))
+        date_delegate = DateDelegate(table)
+        table.setItemDelegateForColumn(3, date_delegate)  # For 'Due Date' column
+        table.setItemDelegateForColumn(4, date_delegate)  # For 'Audit Date' column
+        self.expenseTable.model().dataChanged.connect(self.updateTotalLabels)
+
+    def setupUi(self):
+        layout = QVBoxLayout()
+
+        self.setupExpenseTable(self.expenseTable)
+
+        # Setup Bottom Panel with buttons
+        buttonPanel = QWidget()
+        buttonLayout = QHBoxLayout()
+
+        addButton = QPushButton("Add Expense")
+        deleteButton = QPushButton("Delete Expense")
+        statisticsButton = QPushButton("Run Statistics")
+        commitAllButton = QPushButton("Commit All Expenses")
+
+        # Connect buttons to their respective slots
+        addButton.clicked.connect(self.addExpenseRow)
+        deleteButton.clicked.connect(self.deleteExpenseRow)
+        statisticsButton.clicked.connect(self.StatButtonClicked)
+        commitAllButton.clicked.connect(self.commitAllButtonClicked)
+
+
+        buttonLayout.addWidget(addButton)
+        buttonLayout.addWidget(deleteButton)
+        buttonLayout.addWidget(commitAllButton)
+        buttonLayout.addWidget(statisticsButton)
+        buttonLayout.addWidget(self.totalExpensesLabel)
+        buttonLayout.addWidget(self.committedTotalExpensesLabel)
+
+        buttonPanel.setLayout(buttonLayout)
+
+        layout.addWidget(self.expenseTable)
+        layout.addWidget(buttonPanel)
+
+        self.setLayout(layout)
+
+    def commitAllButtonClicked(self):
+        # Iterate through all rows
+        for row in range(self.expenseTable.rowCount()):
+            commitButton = self.expenseTable.cellWidget(row, 7)  # Assuming Commit button is in column 7
+
+            # If the row is already committed (based on the commit button status), skip it
+            if not commitButton.isEnabled():
+                continue
+
+            # Retrieve the name item to check if it's filled (same as in the single commit method)
+            name_item = self.expenseTable.item(row, 1)  # Assuming the 2nd column is the name
+
+            # If the name field is empty, skip this row
+            if not name_item or not name_item.text().strip():
+                continue
+
+            # Commit the row
+            for col in range(self.expenseTable.columnCount()):
+                # Skip over the Receipt column
+                if col == 5:  # Assuming that column index 5 is for Receipts
+                    continue
+
+                item = self.expenseTable.item(row, col)
+                if item:
+                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+
+                widget = self.expenseTable.cellWidget(row, col)
+                if widget:
+                    widget.setEnabled(False)
+
+            # Update the commit button status for the row
+            commitButton.setEnabled(False)
+            commitButton.setStyleSheet("background-color: green;")
+
+        # Update totals after committing all eligible rows
+        self.updateTotalLabels()
 
     def updateTotalLabels(self):
         total, committed_total = self.computeTotals()
         self.totalExpensesLabel.setText(f"Total: ${total:.2f}")
         self.committedTotalExpensesLabel.setText(f"Committed Total: ${committed_total:.2f}")
-
-    def createPanelWithTable(self, isExpense=True):
-
-        panel = QWidget()
-        layout = QVBoxLayout()
-
-        table = CustomTableWidget(1, 8 if isExpense else 3)
-        table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-        blue = QColor(240, 255, 255)
-        palette = table.palette()
-        palette.setColor(QPalette.ColorRole.Highlight, blue)
-        palette.setColor(QPalette.ColorRole.HighlightedText, QColor(0, 0, 0))  # Setting text color to black
-        table.setPalette(palette)
-
-        if isExpense:
-            table.setHorizontalHeaderLabels(
-                ['Type', 'Name', 'Summary', 'Due Date', 'Audit Date', 'Receipt', 'Total', 'Commit'])
-
-            delegate = MoneyItemDelegate(table)
-            table.setItemDelegateForColumn(6, delegate)
-
-            # Set column widths for the Expense table
-            table.setColumnWidth(3, 120)
-            table.setColumnWidth(4, 120)
-            table.setColumnWidth(5, 100)  # Receipt column
-            table.setColumnWidth(6, 100)  # Total column
-            table.setColumnWidth(7, 100)  # Commit column
-
-            # Set other columns to stretch
-            for index in [0, 1, 2]:
-                table.horizontalHeader().setSectionResizeMode(index, QHeaderView.ResizeMode.Stretch)
-
-        else:
-            table.setHorizontalHeaderLabels(['Entity', 'Received Date', 'Amount'])
-
-            # Set column width for the Income table
-            table.setColumnWidth(2, 100)  # Amount column
-            table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
-
-            # Set other columns to stretch
-            for index in [0, 1]:
-                table.horizontalHeader().setSectionResizeMode(index, QHeaderView.ResizeMode.Stretch)
-
-        for i in range(3):  # Assuming 3 rows for the sake of demonstration
-            for j in range(8 if isExpense else 3):
-                if isExpense:
-                    if j == 0:  # If it's the 'Type' column
-                        table.setCellWidget(i, j, self.createTypeDropdown())
-
-                    elif j == 5:
-                        receiptButton = QPushButton("No")
-                        receiptButton.clicked.connect(lambda _, b=receiptButton: self.receiptButtonClicked(b))
-                        table.setCellWidget(i, j, receiptButton)
-                    #  receiptButton.setStyleSheet("background-color: lightyellow;")
-
-                    elif j == 6:  # If it's the 'Total' column
-                        item = QTableWidgetItem()
-                        item.setText("0.00")  # default value
-                        item.setTextAlignment(Qt.AlignmentFlag.AlignRight)
-                        table.setItem(i, j, item)
-
-                    elif j == 7:  # If it's the 'Commit' column
-                        commitButton = QPushButton("Commit")
-                        commitButton.clicked.connect(lambda _, b=commitButton: self.commitButtonClicked(b))
-                        # commitButton.setStyleSheet("background-color: lightyellow;")
-
-                        table.setCellWidget(i, j, commitButton)
-                    else:
-                        table.setItem(i, j, QTableWidgetItem(" "))
-                else:
-                    table.setItem(i, j, QTableWidgetItem(" "))
-
-        layout.addWidget(table, 1)
-
-        if isExpense:
-            buttonPanel = QWidget()
-            buttonLayout = QHBoxLayout()
-
-            addButton = QPushButton("Add Expense")
-            deleteButton = QPushButton("Delete Expense")
-            statisticsButton = QPushButton("Run Statistics")
-            commitAllButton = QPushButton("Commit All Expenses")
-
-            addButton.clicked.connect(self.addExpenseRow)
-            deleteButton.clicked.connect(self.deleteExpenseRow)
-
-            statisticsButton.clicked.connect(self.StatButtonClicked)
-
-            table.setSortingEnabled(True)
-            table.horizontalHeader().sectionDoubleClicked.connect(self.headerDoubleClicked)
-
-            buttonLayout.addWidget(addButton)
-            buttonLayout.addWidget(deleteButton)
-            buttonLayout.addWidget(commitAllButton)
-            buttonLayout.addWidget(statisticsButton)
-
-            # Add total labels
-            self.totalExpensesLabel = QLabel("Total: $0.00")
-            self.committedTotalExpensesLabel = QLabel("Committed Total: $0.00")
-
-            buttonLayout.addWidget(self.totalExpensesLabel)
-            buttonLayout.addWidget(self.committedTotalExpensesLabel)
-
-            table.model().dataChanged.connect(self.updateTotalLabels)
-
-            buttonPanel.setLayout(buttonLayout)
-            layout.addWidget(buttonPanel)
-
-        panel.setLayout(layout)
-        return panel, table  # Returning the table as well for further reference
 
     def computeTotals(self):
         total = 0.0
@@ -299,6 +243,35 @@ class MyWindow(QMainWindow):
             total += float(value)
 
         return total, committed_total
+    def addExpenseRow(self):
+        rowPosition = self.expenseTable.rowCount()
+        self.expenseTable.insertRow(rowPosition)
+
+        # Set default items/widgets for the new row
+        self.expenseTable.setCellWidget(rowPosition, 0, self.createTypeDropdown())
+
+        for col in [1, 2]:
+            self.expenseTable.setItem(rowPosition, col, QTableWidgetItem(" "))
+
+        # For 'Due Date' and 'Audit Date' columns
+        for col in [3, 4]:
+            date_editor = QDateEdit()
+            date_editor.setDate(QDate.currentDate())
+            date_editor.setDisplayFormat("dd/MM/yyyy")
+            self.expenseTable.setCellWidget(rowPosition, col, date_editor)
+
+        receiptButton = QPushButton("no")
+        receiptButton.clicked.connect(lambda _, b=receiptButton: self.receiptButtonClicked(b))
+        self.expenseTable.setCellWidget(rowPosition, 5, receiptButton)
+
+        # Set the default value for the 'Total' column
+        item = QTableWidgetItem("0.00")
+        item.setTextAlignment(Qt.AlignmentFlag.AlignRight)
+        self.expenseTable.setItem(rowPosition, 6, item)
+
+        commitButton = QPushButton("Commit")
+        commitButton.clicked.connect(lambda _, b=commitButton: self.commitButtonClicked(b))
+        self.expenseTable.setCellWidget(rowPosition, 7, commitButton)
 
     def deleteExpenseRow(self):
         selectedRows = self.expenseTable.selectionModel().selectedRows()
@@ -318,7 +291,7 @@ class MyWindow(QMainWindow):
                                                   options=options)
 
         if filePath:  # If a file was selected
-            destinationFolder = "Receipts"
+            destinationFolder = "C:\Dev\PythonProjects\TheMonkeyTracker\Receipts"
             destinationPath = os.path.join(destinationFolder, os.path.basename(filePath))
             shutil.copy2(filePath, destinationPath)
 
@@ -352,6 +325,7 @@ class MyWindow(QMainWindow):
 
         button.setEnabled(False)
         button.setStyleSheet("background-color: green;")
+        button.setText("Committed")
 
         # Update totals after committing
         self.updateTotalLabels()
@@ -388,35 +362,6 @@ class MyWindow(QMainWindow):
         comboBox.setMaxVisibleItems(30)
         comboBox.setModel(model)
         return comboBox
-
-    def addExpenseRow(self):
-        rowPosition = self.expenseTable.rowCount()
-        self.expenseTable.insertRow(rowPosition)
-
-        # Set default items/widgets for the new row
-        self.expenseTable.setCellWidget(rowPosition, 0, self.createTypeDropdown())
-
-        for col in [1, 2, 3, 4, 5]:
-            self.expenseTable.setItem(rowPosition, col, QTableWidgetItem(" "))
-
-        commitButton = QPushButton("Commit")
-        commitButton.clicked.connect(lambda _, b=commitButton: self.commitButtonClicked(b))
-        # commitButton.setStyleSheet("background-color: lightyellow;")
-
-        self.expenseTable.setCellWidget(rowPosition, 7, commitButton)
-        # Set the default value for the 'Total' column
-
-        receiptButton = QPushButton("no")
-        receiptButton.clicked.connect(lambda _, b=receiptButton: self.receiptButtonClicked(b))
-        # receiptButton.setStyleSheet("background-color: lightyellow;")
-
-        self.expenseTable.setCellWidget(rowPosition, 5, receiptButton)
-
-        # Set the default value for the 'Total' column
-        item = QTableWidgetItem("0.00")
-        item.setTextAlignment(Qt.AlignmentFlag.AlignRight)
-        item.setText("0.00")  # default value
-        self.expenseTable.setItem(rowPosition, 6, item)
 
     def getTypes(self):
         return ['Type1', 'Type2', 'Type3', 'Type4']  # Example types
@@ -461,7 +406,7 @@ class MyWindow(QMainWindow):
     def StatButtonClicked(self):
         print("Working")
         data = self.getCommittedExpenseData()
-        viewStats(self)
+        # viewStats(self)
 
     def headerDoubleClicked(self, logicalIndex):
 
@@ -490,7 +435,8 @@ class MyWindow(QMainWindow):
             self.expenseTable.sortItems(logicalIndex, Qt.SortOrder.AscendingOrder)
 
     def launchStatsView(self, data):
-        launch_view(data, self.getDetailedExpensesForType)
+        print("Steve")
+        # launch_view(data, self.getDetailedExpensesForType)
 
     def getCommittedExpenseData(self):
         data = {}
@@ -542,59 +488,3 @@ class MyWindow(QMainWindow):
                     "Amount": float(amount_item.text().replace("$", "").strip())
                 })
         return detailed_expenses
-
-
-def loadStylesheet(filename):
-    with open(filename, "r") as file:
-        return file.read()
-
-
-if __name__ == '__main__':
-    try:
-        app = QApplication(sys.argv)
-
-        stylesheet = loadStylesheet("IntellijThemeGrey.qss")
-        app.setStyleSheet(stylesheet)
-        window = MyWindow()  # Ensure this class is defined
-        window.show()
-
-        sys.exit(app.exec())
-    except Exception as e:
-        print(f"An error occurred: {e}")
-# Application Features and Functionalities:
-# - Basic Python knowledge expanded to proficiency with multiple libraries and application creation.
-# - Developed debugging skills.
-#
-# File Operations:
-# - New Sheet: Create a new blank sheet.
-# - Open Sheet: Open an existing sheet.
-# - Save Sheet: Save the current sheet.
-# - Save As: Save the current sheet with a different name or location.
-# - Export:
-#   - To PDF: Export the current sheet as a PDF.
-#   - To Excel: Export the current sheet in Excel format.
-#
-# Settings:
-# - Application Size: Adjust the size for accessibility.
-# - Color Category:
-#   - Customizable color assignments for categories.
-#   - Automatic coloration for table population based on category for aesthetics.
-#   - Add or modify categories and subcategories.
-# - Font:
-#   - Type: Choose font type for the application.
-#   - Size: Adjust the font size for readability.
-#
-# Edit Menu:
-# - Redo Line: Reapply the last undone action on a line.
-# - Undo Line: Revert the last action on a line.
-# - Cut/Copy/Paste Line: Basic line manipulation functions.
-# - Select All: Select all lines in the current view.
-# - Delete Line: Remove the selected line.
-#
-# Client Server Menu:
-# - Additional unknown functions to be added.
-#
-# Miscellaneous:
-# - Commit All Lines: Save all lines that meet commit criteria to permanent storage.
-# - Income Table: No current functionality, to be developed.
-#        self.setWindowIcon(QIcon('images/icons8-monkey-96.png'))
