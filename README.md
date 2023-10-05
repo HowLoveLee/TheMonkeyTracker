@@ -30,13 +30,3 @@ Chef give me a few days don't fire me yet
 - **Expense Management:** Add expenses, assign them to categories, set due and audit dates, and even attach receipts.
 
 - **Interactive Pie Charts:** Analyze your expenses with an interactive pie chart, and get a detailed breakdown with just a click.
-
-
-  
-## 🙏 Contributions
-
-Interested in contributing? We'd love to have you! Check out our [contributing guidelines](URL_TO_CONTRIBUTING_GUIDE.md).
-
-## 📜 License
-
-This project is licensed under the MIT License. See the [LICENSE.md](URL_TO_LICENSE.md) file for details.
