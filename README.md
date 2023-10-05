@@ -1,32 +1,37 @@
 # 🐒 MonkeyTracker: Budget & Expense Tracker
 
-MonkeyTracker is a comprehensive tool designed to help individuals and businesses keep a keen eye on their finances. Whether you want to track your expenses, generate interactive charts, or effortlessly export your data, MonkeyTracker has you covered.
+Hello this is my first python project hope you enjoy. if you try it out and have any ideas i could or feature implementation just shoot me a message and I will see about it. Yes I am new the code is not the cleanest. Since its my first project in this language i wrote everything on 2 files which is not clean but for not it will do. As I add more features then I will work on breaking down the files.
 
-![MonkeyTracker Logo](URL_TO_YOUR_LOGO.png)  <!-- replace with actual logo URL -->
+MonkeyTracker is a tool designed to help keep you keep a track in your expenses and how much money is coming in.
+![MonkeyTracker Logo](C:\Dev\PythonProjects\TheMonkeyTracker\images\icons8-monkey-96.png)  <!-- replace with actual logo URL -->
+Monkey a lil ugly i know bare with me. Baby steps lads.
+## 🌟 Features (Work in progress)
+Chef give me a few days don't fire me yet
+## Libraries used:
+- PYQT6
+- PLOTLY
+- PANDAS
+- DASH
 
-## 🌟 Features
+## 📅 Future Plans
 
-- **File Operations:** Easily manage your financial sheets with operations like New, Open, Save, Save As, and export options including PDF and Excel.
-  
-- **Customizable UI:** Adjust the size, choose from different font types and sizes, and personalize color assignments for categories, enhancing the overall experience.
+- **File Operations:** 
+  - OPERATIONS: 
+    - New Sheet
+    - Open Sheet
+    - Save Sheet
+    - Save As
+    - export to PDF 
+    - Export to Excel as well as importation.
+- **Customizable UI:** 
+  - Adjust the size(For my blind fellas)
+  - Personalize color for categories, enhancing the overall experience.
 
 - **Expense Management:** Add expenses, assign them to categories, set due and audit dates, and even attach receipts.
 
 - **Interactive Pie Charts:** Analyze your expenses with an interactive pie chart, and get a detailed breakdown with just a click.
 
-- **Libraries Used:** Developed using robust libraries like PyQt6, Dash, Pandas, and Plotly.
 
-## 🚀 Getting Started
-
-1. **Installation:** Provide steps or commands for installation.
-2. **Usage:** Basic usage or commands to get the application running.
-3. **Dependencies:** Mention any dependencies or prerequisites.
-
-## 📅 Future Plans
-
-- Expand Python knowledge to delve deeper into application development.
-- Further develop debugging skills.
-- Introduce client-server functionalities and more.
   
 ## 🙏 Contributions
 
