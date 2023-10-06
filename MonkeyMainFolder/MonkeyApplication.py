@@ -1,36 +1,44 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon, QPixmap, QBrush, QPalette
-from PyQt6.QtWidgets import QMainWindow, QMenuBar, QMenu, QSplitter, QTabWidget, QLabel, QMessageBox
+from PyQt6.QtWidgets import (
+    QMainWindow,
+    QMenuBar,
+    QMenu,
+    QSplitter,
+    QTabWidget,
+    QLabel,
+    QMessageBox,
+)
 
 from MonkeyMainFolder.Expenses.ExpensePanel import ExpensePanel
 from MonkeyMainFolder.Income.IncomePanel import IncomePanel
-from Settings.MainMonkeyMenuFunctions import MainMonkeyMenuFunctions
-from Settings.Shortcuts import Shortcuts
+from MonkeyMainFolder.Settings.MainMonkeyMenuFunctions import MainMonkeyMenuFunctions
+from MonkeyMainFolder.Settings.Shortcuts import Shortcuts
 
 
 class MyWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("MonkeyTracker")
-        self.setWindowIcon(QIcon('images/icons8-monkey-96.png'))
+        self.setWindowIcon(QIcon("images/icons8-monkey-96.png"))
 
         # Create the menu bar
         menubar = QMenuBar(self)
 
         # Create menus
-        fileMenu = QMenu('File', self)
-        editMenu = QMenu('Edit', self)
-        clientServerMenu = QMenu('idkYetGang', self)
+        fileMenu = QMenu("File", self)
+        editMenu = QMenu("Edit", self)
+        clientServerMenu = QMenu("idkYetGang", self)
 
         # Add actions to the File menu
-        openAction = QAction('Open', self)
-        newAction = QAction('New', self)
-        saveAction = QAction('Save', self)
-        saveAsAction = QAction('Save As', self)
+        openAction = QAction("Open", self)
+        newAction = QAction("New", self)
+        saveAction = QAction("Save", self)
+        saveAsAction = QAction("Save As", self)
 
-        exportToPDF = QAction('PDF Export', self)
-        settings = QAction('Settings', self)
-        exitAction = QAction('Exit', self)
+        exportToPDF = QAction("PDF Export", self)
+        settings = QAction("Settings", self)
+        exitAction = QAction("Exit", self)
 
         self.menuFunctions = MainMonkeyMenuFunctions(self)
 
@@ -61,12 +69,12 @@ class MyWindow(QMainWindow):
         fileMenu.addAction(exitAction)
 
         # Edit menu actions
-        undoEdit = QAction('Undo', self)
-        redoEdit = QAction('Redo', self)
-        cutEdit = QAction('Cut', self)
-        copyEdit = QAction('Copy', self)
-        pasteEdit = QAction('Paste', self)
-        selectAllEdit = QAction('Select All', self)
+        undoEdit = QAction("Undo", self)
+        redoEdit = QAction("Redo", self)
+        cutEdit = QAction("Cut", self)
+        copyEdit = QAction("Copy", self)
+        pasteEdit = QAction("Paste", self)
+        selectAllEdit = QAction("Select All", self)
 
         undoEdit.setShortcut(Shortcuts.UNDO)
         redoEdit.setShortcut(Shortcuts.REDO)
@@ -104,10 +112,16 @@ class MyWindow(QMainWindow):
         splitter.addWidget(self.expensePanel)
         splitter.addWidget(self.incomePanel)
         splitter.setSizes([100, 1000])
-        pixmap = QPixmap('C:\\Dev\\PythonProjects\\TheMonkeyTracker\\images\\Splitter.png')
+        pixmap = QPixmap(
+            "C:\\Dev\\PythonProjects\\TheMonkeyTracker\\images\\Splitter.png"
+        )
         desired_width = self.width()
-        scaled_pixmap = pixmap.scaled(desired_width, 360, Qt.AspectRatioMode.KeepAspectRatio,
-                                      Qt.TransformationMode.SmoothTransformation)
+        scaled_pixmap = pixmap.scaled(
+            desired_width,
+            360,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
 
         # Use the scaled pixmap for the brush
         brush = QBrush(scaled_pixmap)
