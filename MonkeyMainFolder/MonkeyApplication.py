@@ -9,14 +9,27 @@ from PyQt6.QtWidgets import (
     QLabel,
     QMessageBox,
 )
-
+from MonkeyMainFolder.Budget.ConditionalStatements import ConditionalStatements
 from MonkeyMainFolder.Expenses.ExpensePanel import ExpensePanel
 from MonkeyMainFolder.Income.IncomePanel import IncomePanel
-from MonkeyMainFolder.Settings.MainMonkeyMenuFunctions import MainMonkeyMenuFunctions
-from MonkeyMainFolder.Settings.Shortcuts import Shortcuts
+from Settings.MainMonkeyMenuFunctions import MainMonkeyMenuFunctions
+from Settings.Shortcuts import Shortcuts
+from Settings.ProgramSettings import ProgramSettings
+from Budget.BudgetPanel import BudgetPanel
 
 
 class MyWindow(QMainWindow):
+
+    def moveEvent(self, event):
+        super().moveEvent(event)
+        current_screen = self.screen()  # Get the screen the window is currently on
+        screen_resolution = current_screen.size()
+
+        if screen_resolution.width() > 1920:  # If it's a large monitor
+            self.Conditional.squishButtonsToCenter()
+        else:
+            self.Conditional.setDefaultButtonSpacing()  # Reset to default spacing
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("MonkeyTracker")
@@ -54,6 +67,7 @@ class MyWindow(QMainWindow):
         saveAction.triggered.connect(self.menuFunctions.saveFile)
         saveAsAction.triggered.connect(self.menuFunctions.saveFileAs)
         newAction.triggered.connect(self.menuFunctions.newFile)
+        settings.triggered.connect(self.openSettings)
 
         fileMenu.addAction(newAction)
         fileMenu.addSeparator()
@@ -132,11 +146,10 @@ class MyWindow(QMainWindow):
         # Add the splitter as the first tab
         tabWidget.addTab(splitter, "Expenses & Income")
 
-        # Placeholder widget for the Budget part
-        budgetPlaceholder = QLabel("Budget panel placeholder.", self)
-
+        self.budget = BudgetPanel()
+        self.Conditional = ConditionalStatements()
         # Add the budget placeholder as the second tab
-        tabWidget.addTab(budgetPlaceholder, "Budget")
+        tabWidget.addTab(self.budget, "Budget")
 
         # Set the QTabWidget as the central widget of the main window
         self.setCentralWidget(tabWidget)
@@ -144,13 +157,17 @@ class MyWindow(QMainWindow):
         self.setGeometry(100, 100, 990, 700)
 
     def closeEvent(self, event):
-        # You might call your onExitTriggered and let it return True/False based on whether to proceed closing
         should_close = self.menuFunctions.onExitTriggered()
 
         if not should_close:
             event.ignore()
         else:
             event.accept()
+
+    def openSettings(self):
+        print("Opening Settings...")  # Just for debugging
+        self.settings_window = ProgramSettings()
+        self.settings_window.show()
 
 
 class CustomSplitter(QSplitter):
