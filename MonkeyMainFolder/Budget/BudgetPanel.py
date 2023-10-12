@@ -84,7 +84,7 @@ class BudgetPanel(QtWidgets.QWidget):
 
         # Organize chart layouts with equal stretch factors
         chartLayout = QtWidgets.QHBoxLayout()
-        chartLayout.addWidget(netWorthChart, 1)  # 50% width
+        chartLayout.addWidget(sc, 1)  # 50% width
         chartLayout.addWidget(sc, 1)  # 50% width
 
         # Ensure charts and buttons each take up half the height of the panel
