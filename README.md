@@ -20,6 +20,87 @@ Chef give me a few days don't fire me yet
  
 ## 📅 Future Plans, Will be added slowly, running out of time lately.
 
+# MonkeyTracker Roadmap
+
+## Menubar
+
+### File
+- :heavy_check_mark: New
+- :heavy_check_mark: Load
+- :heavy_check_mark: Save
+  - ! Add a small panel that is green and says "Saved!"
+- :heavy_check_mark: Save As
+  - ! Add a small panel that is green and says "Saved! To path:"
+- [ ] Settings
+- [ ] Export To PDF
+  - ! Exported to:
+- [ ] Exit
+  - # Dialog to prevent accidental loss of current sheet for all exit actions.
+
+### Edit (Complex task, timeline uncertain)
+- [ ] Undo
+- [ ] Redo
+- [ ] Copy
+- [ ] Paste
+- [ ] Cut
+- [ ] Select All
+- [ ] Delete
+- [ ] Find
+
+### Server
+- [ ] Download Sheet
+- [ ] Upload Sheet
+
+---
+
+## Table Panel
+
+### Columns
+- [ ] Type of Expense
+- [ ] Name of Expense
+- [ ] Summary
+- [ ] Date Due
+- [ ] Audit Date
+- [ ] Proof of Receipt
+- [ ] Total Amount
+- [ ] Commit Action
+  - ! Potential addition: "From" column to indicate the payment method
+
+### Features
+- [ ] Add Row
+- [ ] Delete Row
+- [ ] Commit All Rows
+- [ ] Total Pre
+- [ ] Total Committed
+
+### Filters
+- [ ] Date Filter
+  - Dropdown with 2 date selectors (From & To)
+- [ ] Expense Category Filter
+  - Dropdown with Tick Buttons next to categories.
+- [ ] Reset Filter
+  - Label to remove all filters and show the complete table.
+
+---
+
+## Settings
+
+### Tables
+- [ ] Category Editor (Add, Delete, Edit categories)
+  - [ ] Expenses
+  - [ ] Income
+  - [ ] Budget
+
+### Shortcuts
+- [ ] Overview
+  - Non-editable field listing shortcuts.
+- [ ] Edit
+  - Editable list of shortcuts, each with a corresponding button to set new input. Save/Cancel buttons.
+  - Writes to a file for dynamic reading.
+
+### Integrations
+- [ ] File Management
+  - Allows choosing where files are stored.
 
 - **File Operations:** 
   - OPERATIONS: 
