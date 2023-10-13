@@ -31,11 +31,11 @@ Chef give me a few days don't fire me yet
   - ! Add a small panel that is green and says "Saved!"
 - :white_check_mark: Save As
   - ! Add a small panel that is green and says "Saved! To path:"
-- [ ] Settings
+- :white_check_mark: Settings
 - [ ] Export To PDF
   - ! Exported to:
-- [ ] Exit
-  - # Dialog to prevent accidental loss of current sheet for all exit actions.
+- :white_check_mark: Exit
+  - # Dialog to prevent accidental loss of the current sheet for all exit actions.
 
 ### Edit (Complex task, timeline uncertain)
 - [ ] Undo
@@ -56,22 +56,22 @@ Chef give me a few days don't fire me yet
 ## Table Panel
 
 ### Columns
-- [ ] Type of Expense
-- [ ] Name of Expense
-- [ ] Summary
-- [ ] Date Due
-- [ ] Audit Date
-- [ ] Proof of Receipt
-- [ ] Total Amount
-- [ ] Commit Action
+- :white_check_mark: Type of Expense
+- :white_check_mark: Name of Expense
+- :white_check_mark: Summary
+- :white_check_mark: Date Due
+- :white_check_mark: Audit Date
+- :white_check_mark: Proof of Receipt
+- :white_check_mark: Total Amount
+- :white_check_mark: Commit Action
   - ! Potential addition: "From" column to indicate the payment method
 
 ### Features
-- [ ] Add Row
-- [ ] Delete Row
-- [ ] Commit All Rows
-- [ ] Total Pre
-- [ ] Total Committed
+- :white_check_mark: Add Row
+- :white_check_mark: Delete Row
+- :white_check_mark: Commit All Rows
+- :white_check_mark: Total Pre
+- :white_check_mark: Total Committed
 
 ### Filters
 - [ ] Date Filter
@@ -80,7 +80,8 @@ Chef give me a few days don't fire me yet
   - Dropdown with Tick Buttons next to categories.
 - [ ] Reset Filter
   - Label to remove all filters and show the complete table.
-
+     -Filter from a specific date to another date example (Show 6/21/2023-10/07/2023)
+     -Expense Name, Expense Type, Expenses OVER $<Inset amount>, Expenses UNDER $<Inset amount>
 ---
 
 ## Settings
@@ -102,25 +103,11 @@ Chef give me a few days don't fire me yet
 - [ ] File Management
   - Allows choosing where files are stored.
 
-- **File Operations:** 
-  - OPERATIONS: 
-    - Excel Sheet Pre-View.
-    - Export to PDF.
-    - Fix Exit(Dialog)
-    - 
-- **Edit Operations:** 
-  - OPERATIONS: 
-    - Undo & Redo
-    - Cut & Copy & Paste expense
-    - Find Expense
      
 - **Expenses&Incomes Tab UI:** 
   - Run Statistics will be deleted no longer using Plotly, might use it to teleport to the expense chart breakdown of each % for the categories.
   - Filter options
-     -Filter from a specific date to another date example (Show 6/21/2023-10/07/2023)
-     -Expense Name, Expense Type, Expenses OVER $<Inset amount>, Expenses UNDER $<Inset amount>
 
-     
 - **Budget Tab UI:** 
   - Double Table with previews. Left will preview Net worth, right will preview Expenses over time.
   - Underneath we will have 3 buttons \Conditional Statements\Budgetting Goals\Debt Management
