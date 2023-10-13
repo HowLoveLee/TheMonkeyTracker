@@ -25,11 +25,11 @@ Chef give me a few days don't fire me yet
 ## Menubar
 
 ### File
-- :heavy_check_mark: New
-- :heavy_check_mark: Load
-- :heavy_check_mark: Save
+- :white_check_mark: New
+- :white_check_mark: Load
+- :white_check_mark: Save
   - ! Add a small panel that is green and says "Saved!"
-- :heavy_check_mark: Save As
+- :white_check_mark: Save As
   - ! Add a small panel that is green and says "Saved! To path:"
 - [ ] Settings
 - [ ] Export To PDF
