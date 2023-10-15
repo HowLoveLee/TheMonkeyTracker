@@ -17,37 +17,40 @@ class CustomTitleBar(StandardTitleBar):
         super().__init__(parent)
 
         self.menu_bar = QMenuBar(self)
+        '''
+        
+        
         self.menu_bar.setStyleSheet("""
-                   QMenuBar {
-                       background-color: transparent;
-                   }
-                   QMenuBar::item {
+                           QMenuBar {
                                background-color: transparent;
-                               padding: 6px 6px;  /* Adjusted padding for width */
-                               font-size: 30px;    /* Font size */
-                               color: black;         /* Text color */
-                               margin: 1px 0;      /* Spacing between items */
-                   }
-                   QMenuBar::item:selected {
-                       background-color: rgba(173, 216, 230, 1.0);  # Light blue for selected item
-                   }
-                   QMenu {
-                       background-color: white;
-                       border: 1px solid rgba(0, 0, 0, 0.5);  # Semi-transparent black border
-                   }
-                   QMenu::item {
-                       background-color: white;
-                       padding: 5px 10px;  # Adjust as needed
-                       color: black;  # Text color
-                   }
-                   QMenu::item:selected {
-                       background-color: rgba(220, 220, 220, 1.0);  # Slightly gray for selected item
-                   }
-                   QMenu::item:active {
-                       background-color: rgba(200, 200, 200, 1.0);  # A bit darker gray for an active item
-                   }
-               """)
-
+                           }
+                           QMenuBar::item {
+                                       background-color: transparent;
+                                       padding: 6px 6px;  /* Adjusted padding for width */
+                                       font-size: 30px;    /* Font size */
+                                       color: black;         /* Text color */
+                                       margin: 1px 0;      /* Spacing between items */
+                           }
+                           QMenuBar::item:selected {
+                               background-color: rgba(173, 216, 230, 1.0);  # Light blue for selected item
+                           }
+                           QMenu {
+                               background-color: white;
+                               border: 1px solid rgba(0, 0, 0, 0.5);  # Semi-transparent black border
+                           }
+                           QMenu::item {
+                               background-color: white;
+                               padding: 5px 10px;  # Adjust as needed
+                               color: black;  # Text color
+                           }
+                           QMenu::item:selected {
+                               background-color: rgba(220, 220, 220, 1.0);  # Slightly gray for selected item
+                           }
+                           QMenu::item:active {
+                               background-color: rgba(200, 200, 200, 1.0);  # A bit darker gray for an active item
+                           }
+                       """)
+'''
         icon_label = QLabel(self)
         icon_pixmap = QPixmap("images/moke.png")
         scaled_pixmap = icon_pixmap.scaled(20, 20,
@@ -59,25 +62,100 @@ class CustomTitleBar(StandardTitleBar):
         self.layout().insertWidget(0, icon_label)  # This will add the icon before the menu bar
         self.layout().setContentsMargins(0, 0, 0, 0)
 
-        file_menu = QMenu("File", self.menu_bar)
-        file_menu.addAction("Open")
-        file_menu.addAction("New")
-        file_menu.addAction("Save")
-        self.menu_bar.addMenu(file_menu)
+        # Create Menus
+        fileMenu = QMenu("File", self.menu_bar)
+        editMenu = QMenu("Edit", self)
+        client = QMenu("Client", self)
 
-        edit_menu = QMenu("Edit", self.menu_bar)
-        edit_menu.addAction("Undo")
-        edit_menu.addAction("Redo")
-        edit_menu.addAction("Settings")
-        self.menu_bar.addMenu(edit_menu)
+        # File Menu Actions
+        openAction = QAction("Open", self)
+        newAction = QAction("New", self)
+        saveAction = QAction("Save", self)
+        saveAsAction = QAction("Save As", self)
+        exportToPDF = QAction("PDF Export", self)
+        settings = QAction("Settings", self)
+        exitAction = QAction("Exit", self)
+        self.menuFunctions = MainMonkeyMenuFunctions(self)
 
-        view_menu = QMenu("View", self.menu_bar)
-        view_menu.addAction("Find")
-        self.menu_bar.addMenu(view_menu)
+        # Set shortcuts
+        openAction.setShortcut(Shortcuts.OPEN)
+        newAction.setShortcut(Shortcuts.NEW)
+        saveAction.setShortcut(Shortcuts.SAVE)
+        saveAsAction.setShortcut(Shortcuts.SAVE_AS)
+        exportToPDF.setShortcut(Shortcuts.EXPORT_TO_PDF)
+        settings.setShortcut(Shortcuts.SETTINGS)
+
+        # Set Actions
+        exitAction.triggered.connect(self.menuFunctions.onExitTriggered)
+        openAction.triggered.connect(self.menuFunctions.openFile)
+        saveAction.triggered.connect(self.menuFunctions.saveFile)
+        saveAsAction.triggered.connect(self.menuFunctions.saveFileAs)
+        newAction.triggered.connect(self.menuFunctions.newFile)
+        settings.triggered.connect(self.openSettings)
+
+        # Add To Menu
+
+        fileMenu.addAction(newAction)
+        fileMenu.addSeparator()
+        fileMenu.addAction(openAction)
+        fileMenu.addSeparator()
+        fileMenu.addAction(saveAction)
+        fileMenu.addAction(saveAsAction)
+        fileMenu.addSeparator()
+        fileMenu.addAction(exportToPDF)
+        fileMenu.addSeparator()
+        fileMenu.addAction(settings)
+        fileMenu.addSeparator()
+        fileMenu.addAction(exitAction)
+        self.menu_bar.addMenu(fileMenu)
+
+        # Edit menu actions
+        undoEdit = QAction("Undo", self)
+        redoEdit = QAction("Redo", self)
+        cutEdit = QAction("Cut", self)
+        copyEdit = QAction("Copy", self)
+        pasteEdit = QAction("Paste", self)
+        selectAllEdit = QAction("Select All", self)
+        findExpense = QAction("Find/Replace", self)
+
+        undoEdit.setShortcut(Shortcuts.UNDO)
+        redoEdit.setShortcut(Shortcuts.REDO)
+        cutEdit.setShortcut(Shortcuts.CUT)
+        copyEdit.setShortcut(Shortcuts.COPY)
+        pasteEdit.setShortcut(Shortcuts.PASTE)
+        selectAllEdit.setShortcut(Shortcuts.SELECT_ALL)
+        # Must create a findExpense.setShortcut.
+
+        editMenu.addAction(undoEdit)
+        editMenu.addAction(redoEdit)
+        editMenu.addSeparator()
+        editMenu.addAction(cutEdit)
+        editMenu.addAction(copyEdit)
+        editMenu.addAction(pasteEdit)
+        editMenu.addSeparator()
+        editMenu.addAction(selectAllEdit)
+        editMenu.addSeparator()
+        editMenu.addAction(findExpense)
+        self.menu_bar.addMenu(editMenu)
 
         self.layout().insertWidget(1, self.menu_bar)
+
         self.setWindowIcon(QIcon("images/moke.png"))
         self.setWindowTitle("TheMonkeyTracker")
+
+    # We go to fix this shit bros it doesn't work.
+    def closeEvent(self, event):
+        should_close = self.menuFunctions.onExitTriggered()
+
+        if not should_close:
+            event.ignore()
+        else:
+            event.accept()
+
+    def openSettings(self):
+        print("Opening Settings...")  # Just for debugging
+        self.settings_window = ProgramSettings()
+        self.settings_window.show()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -91,7 +169,9 @@ class MyWindow(FramelessWindow):
         self.setTitleBar(CustomTitleBar(self))
         self.setObjectName("MyMainWindow")
 
-        # self.setStyleSheet("#MyMainWindow { background-color: red; }")
+        # Ignore this
+        # self.setStyleSheet("#MyMainWindow { background-color: salmon; }")
+        # self.setStyleSheet("#MyMainWindow { background-color: grey; }")
 
         mainLayout = QVBoxLayout()  # Create a QVBoxLayout
         mainLayout.setContentsMargins(0, 32, 0, 0)  # Top margin set to 32 pixels
