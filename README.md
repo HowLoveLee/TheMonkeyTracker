@@ -20,26 +20,94 @@ Chef give me a few days don't fire me yet
  
 ## 📅 Future Plans, Will be added slowly, running out of time lately.
 
+# MonkeyTracker Roadmap
 
-- **File Operations:** 
-  - OPERATIONS: 
-    - Excel Sheet Pre-View.
-    - Export to PDF.
-    - Fix Exit(Dialog)
-    - 
-- **Edit Operations:** 
-  - OPERATIONS: 
-    - Undo & Redo
-    - Cut & Copy & Paste expense
-    - Find Expense
+## Menubar
+
+### File
+- :white_check_mark: New
+- :white_check_mark: Load
+- :white_check_mark: Save
+  - ! Add a small panel that is green and says "Saved!"
+- :white_check_mark: Save As
+  - ! Add a small panel that is green and says "Saved! To path:"
+- :white_check_mark: Settings
+- [ ] Export To PDF
+  - ! Exported to:
+- :white_check_mark: Exit
+  - # Dialog to prevent accidental loss of the current sheet for all exit actions.
+
+### Edit (Complex task, timeline uncertain)
+- [ ] Undo
+- [ ] Redo
+- [ ] Copy
+- [ ] Paste
+- [ ] Cut
+- [ ] Select All
+- [ ] Delete
+- [ ] Find
+
+### Server
+- [ ] Download Sheet
+- [ ] Upload Sheet
+
+---
+
+## Table Panel
+
+### Columns
+- :white_check_mark: Type of Expense
+- :white_check_mark: Name of Expense
+- :white_check_mark: Summary
+- :white_check_mark: Date Due
+- :white_check_mark: Audit Date
+- :white_check_mark: Proof of Receipt
+- :white_check_mark: Total Amount
+- :white_check_mark: Commit Action
+  - ! Potential addition: "From" column to indicate the payment method
+
+### Features
+- :white_check_mark: Add Row
+- :white_check_mark: Delete Row
+- :white_check_mark: Commit All Rows
+- :white_check_mark: Total Pre
+- :white_check_mark: Total Committed
+
+### Filters
+- [ ] Date Filter
+  - Dropdown with 2 date selectors (From & To)
+- [ ] Expense Category Filter
+  - Dropdown with Tick Buttons next to categories.
+- [ ] Reset Filter
+  - Label to remove all filters and show the complete table.
+     -Filter from a specific date to another date example (Show 6/21/2023-10/07/2023)
+     -Expense Name, Expense Type, Expenses OVER $<Inset amount>, Expenses UNDER $<Inset amount>
+---
+
+## Settings
+
+### Tables
+- [ ] Category Editor (Add, Delete, Edit categories)
+  - [ ] Expenses
+  - [ ] Income
+  - [ ] Budget
+
+### Shortcuts
+- [ ] Overview
+  - Non-editable field listing shortcuts.
+- [ ] Edit
+  - Editable list of shortcuts, each with a corresponding button to set new input. Save/Cancel buttons.
+  - Writes to a file for dynamic reading.
+
+### Integrations
+- [ ] File Management
+  - Allows choosing where files are stored.
+
      
 - **Expenses&Incomes Tab UI:** 
   - Run Statistics will be deleted no longer using Plotly, might use it to teleport to the expense chart breakdown of each % for the categories.
   - Filter options
-     -Filter from a specific date to another date example (Show 6/21/2023-10/07/2023)
-     -Expense Name, Expense Type, Expenses OVER $<Inset amount>, Expenses UNDER $<Inset amount>
 
-     
 - **Budget Tab UI:** 
   - Double Table with previews. Left will preview Net worth, right will preview Expenses over time.
   - Underneath we will have 3 buttons \Conditional Statements\Budgetting Goals\Debt Management
