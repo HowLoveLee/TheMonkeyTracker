@@ -60,7 +60,7 @@ class MainMonkeyMenuFunctions:
         else:
             # If there's no current file path, simply clear the table
             self.main_window.expensePanel.expenseTable.setRowCount(0)
-
+            self
     def openFile(self):
         options = QFileDialog.Option.ReadOnly
         filePath, _ = QFileDialog.getOpenFileName(self.main_window, "Open Excel File", "",

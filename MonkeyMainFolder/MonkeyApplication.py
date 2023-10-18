@@ -1,6 +1,7 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon, QPixmap, QBrush, QPalette
-from PyQt6.QtWidgets import QMainWindow, QMenuBar, QMenu, QSplitter, QTabWidget, QLabel, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QMenuBar, QMenu, QSplitter, QTabWidget, QLabel, QVBoxLayout, QWidget, \
+    QMessageBox
 from qframelesswindow import FramelessWindow, StandardTitleBar, AcrylicWindow
 from MonkeyMainFolder.Budget.ConditionalStatements import ConditionalStatements
 from MonkeyMainFolder.Expenses.ExpensePanel import ExpensePanel
@@ -67,6 +68,7 @@ class CustomTitleBar(StandardTitleBar):
         editMenu = QMenu("Edit", self)
         client = QMenu("Client", self)
 
+
         # File Menu Actions
         openAction = QAction("Open", self)
         newAction = QAction("New", self)
@@ -109,6 +111,7 @@ class CustomTitleBar(StandardTitleBar):
         fileMenu.addAction(exitAction)
         self.menu_bar.addMenu(fileMenu)
 
+
         # Edit menu actions
         undoEdit = QAction("Undo", self)
         redoEdit = QAction("Redo", self)
@@ -138,10 +141,24 @@ class CustomTitleBar(StandardTitleBar):
         editMenu.addAction(findExpense)
         self.menu_bar.addMenu(editMenu)
 
+        #What Will happen next lookin ahh
+        clickMeButton = QAction('Click me', self)
+        aboutMenu = QMenu('About', self)
+        clickMeButton.triggered.connect(self.dialogAbout)
+        aboutMenu.addAction(clickMeButton)
+        self.menu_bar.addMenu(aboutMenu)
+
         self.layout().insertWidget(1, self.menu_bar)
 
         self.setWindowIcon(QIcon("images/moke.png"))
         self.setWindowTitle("TheMonkeyTracker")
+
+    def dialogAbout(self):
+
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle("About!")
+        dlg.setText("Chhese")
+        dlg.exec()
 
     # We go to fix this shit bros it doesn't work.
     def closeEvent(self, event):

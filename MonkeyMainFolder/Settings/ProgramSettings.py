@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSplitter,
 
 from MonkeyMainFolder.Settings.CustomBlockEditor import CustomBlockEditor
 from MonkeyMainFolder.Settings.Customlabel import ClickableLabel
+from MonkeyMainFolder.Settings.CustomShortCutEditor import CustomShortCutEditor
 
 
 class ProgramSettings(QWidget):
@@ -12,7 +13,16 @@ class ProgramSettings(QWidget):
         super().__init__(parent)
         self.setWindowTitle("Settings")
         self.setGeometry(100, 100, 800, 600)  # Set default position and size
+        self.setMinimumSize(1,500)
 
+        self.expensesEditor = CustomBlockEditor("C:/Dev/PythonProjects/TheMonkeyTracker/MonkeyMainFolder/Settings"
+                                                "/JSONS/expensesEditor.json")
+        self.incomeEditor = CustomBlockEditor("C:/Dev/PythonProjects/TheMonkeyTracker/MonkeyMainFolder/Settings/JSONS"
+                                              "/incomeEditor.json")
+        self.budgetEditor = CustomBlockEditor("C:/Dev/PythonProjects/TheMonkeyTracker/MonkeyMainFolder/Settings/JSONS"
+                                              "/budgetEditor.json")
+        self.shortcutEditor = CustomShortCutEditor("C:/Dev/PythonProjects/TheMonkeyTracker/MonkeyMainFolder/Settings"
+                                                   "/JSONS/shorts.json")
         # Main Layout
         layout = QVBoxLayout(self)
 
@@ -106,7 +116,7 @@ class ProgramSettings(QWidget):
         # Shortcuts
         shortcutsItem = QTreeWidgetItem(["Shortcuts"])
         shortcutsItem.addChild(QTreeWidgetItem(["Overview"]))
-
+        shortcutsItem.addChild(QTreeWidgetItem(["Editor"]))
         # Integrations
         integrationsItem = QTreeWidgetItem(["Integrations"])
         integrationsItem.addChild(QTreeWidgetItem(["Financial"]))
@@ -135,6 +145,7 @@ class ProgramSettings(QWidget):
 
         # Reduce the spacing between each element
         layout.setSpacing(5)
+        runLabels = True
 
         # Create Title and Description Labels
         titleLabel = QLabel(currentText, self)
@@ -150,19 +161,13 @@ class ProgramSettings(QWidget):
             "Shortcuts": "Customize your shortcuts and their behaviors.",
             "Integrations": "Integrate with financial services and manage your files.",
         }
-        if currentText == "Expenses Editor":
-            blocky = CustomBlockEditor()
-            layout.addWidget(titleLabel)
 
-            layout.addWidget(blocky)
-
-        else:
-            descriptionLabel = QLabel(
-                descriptions.get(currentText, f"This is a description for {currentText} settings."),
-                self)
-            # Add them to layout
-            layout.addWidget(titleLabel)
-            layout.addWidget(descriptionLabel)
+        descriptionLabel = QLabel(
+            descriptions.get(currentText, f"This is a description for {currentText} settings."),
+            self)
+        # Add them to layout
+        layout.addWidget(titleLabel)
+        layout.addWidget(descriptionLabel)
         # Set the description label based on the category
 
         if currentText == "General Settings":
@@ -183,7 +188,21 @@ class ProgramSettings(QWidget):
                 ClickableLabel("Budget Editor", self)
 
             ]
-
+        elif currentText == "Expenses Editor":
+            layout.addWidget(titleLabel)
+            layout.addWidget(self.expensesEditor)
+            layout.setStretchFactor(self.expensesEditor, 1)
+            runLabels = False
+        elif currentText == "Income Editor":
+            layout.addWidget(titleLabel)
+            layout.addWidget(self.incomeEditor)
+            layout.setStretchFactor(self.incomeEditor, 1)
+            runLabels = False
+        elif currentText == "Budget Editor":
+            layout.addWidget(titleLabel)
+            layout.addWidget(self.budgetEditor)
+            layout.setStretchFactor(self.budgetEditor, 1)
+            runLabels = False
         elif currentText == "Budgeting":
             labels = [
                 ClickableLabel("Budget Setup", self),
@@ -194,6 +213,13 @@ class ProgramSettings(QWidget):
                 ClickableLabel("Overview", self),
                 ClickableLabel("Editor", self)
             ]
+            
+        elif currentText == "Editor":
+            layout.addWidget(titleLabel)
+            layout.addWidget(self.shortcutEditor)
+            layout.setStretchFactor(self.shortcutEditor, 1)
+            runLabels = False
+
         elif currentText == "Integrations":
             labels = [
                 ClickableLabel("Financial Services", self),
@@ -205,16 +231,17 @@ class ProgramSettings(QWidget):
             else:
                 labels = [QLabel("edit", self)]
 
-        def make_lambda(label_text):
-            return lambda *args: self.handleLabelClick(label_text)
+        if runLabels:
+            def make_lambda(label_text):
+                return lambda *args: self.handleLabelClick(label_text)
 
-        for label in labels:
-            print(type(label))
-            existing_style = label.styleSheet()
-            label.setStyleSheet(f"{existing_style}; padding-left: 20px;")
-            layout.addWidget(label)
-            if isinstance(label, ClickableLabel):
-                label.clicked.connect(make_lambda(label.text()))
+            for label in labels:
+                print(type(label))
+                existing_style = label.styleSheet()
+                label.setStyleSheet(f"{existing_style}; padding-left: 20px;")
+                layout.addWidget(label)
+                if isinstance(label, ClickableLabel):
+                    label.clicked.connect(make_lambda(label.text()))
 
         layout.addStretch(1)
         idx = self.settingsDetails.addWidget(container)
@@ -327,5 +354,23 @@ Table Panel
     -Integrations
         -File Management:
             -Choosing where the files are stored.
+
+Credit Payments
+Zelle
+Xoom
+Rent
+Utilities
+Fuel
+Auto Insurance
+Maintenance & repairs
+Groceries
+Dinning Out
+Coffe Shops
+Movie Theaters
+Video Games
+Streaming Services.
+
+                
+                
                 
 '''

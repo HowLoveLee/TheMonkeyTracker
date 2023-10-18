@@ -1,0 +1,6 @@
+{
+  "Banking": ["Credit Payments", "Zelle", "Xoom"], "Housing": ["Rent", "Utilities", "Home Decour"],
+  "Auto": ["Fuel", "Auto Insurance", "Maintanance & Repairs"], "Food": ["Groceries", "Dinning Out", "Coffe Shops"],
+  "Entertainment": ["Video Games", "Streaming Services", "Movie Theather", "Online Services"],
+  "Recurring Bills": ["Mobile Services"], "Education": ["Tuition", "Books"]
+}

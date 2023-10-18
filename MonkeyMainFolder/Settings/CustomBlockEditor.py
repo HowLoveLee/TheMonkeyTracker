@@ -1,9 +1,59 @@
 import random
-
+import json
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTreeWidget, QTreeWidgetItem, \
-    QMainWindow, QGridLayout, QListWidgetItem, QStyledItemDelegate
+    QMainWindow, QGridLayout, QStyledItemDelegate, QSizePolicy
+import os
+
+
+class CategoryManager:
+    def __init__(self):
+        self.filepath = None
+        self.categories = {}
+        self.original_categories = {}
+
+    def initialize(self, filepath):
+        #print(f"Initializing with filepath: {filepath}")  # Debug line
+        self.filepath = filepath
+
+        if not os.path.exists(self.filepath):
+            #print(f"No previous categories found for {self.filepath}, starting fresh.")
+            return
+
+        try:
+            self.loadCats()
+            self.backupCategories()
+        except Exception as e:
+            print(" ")
+            #print(f"An error occurred: {e}")
+
+    def saveCats(self):
+        #print("Saving categories...")
+        try:
+            with open(self.filepath, 'w') as f:
+                json.dump(self.categories, f)
+        except Exception as e:
+            print(" ")
+            #print(f"An error occurred while saving: {e}")
+
+    def loadCats(self):
+        #print(f"Loading categories from {self.filepath}")  # Debug line
+        try:
+            with open(self.filepath, 'r') as f:
+                self.categories = json.load(f)
+            #print(f"Loaded categories: {self.categories}")  # Debug line
+        except Exception as e:
+            print(" ")
+            #print(f"An error occurred while loading: {e}")
+
+    def backupCategories(self):
+        self.original_categories = self.categories.copy()
+        #print(f"Backed up categories: {self.original_categories}")  # Debug line
+
+    def addCategory(self, name, sub_categories=[]):
+        self.categories[name] = sub_categories
+        #print(f"Added category: {name}, Sub-categories: {sub_categories}")  # Debug line
 
 
 class CustomItemDelegate(QStyledItemDelegate):
@@ -14,10 +64,14 @@ class CustomItemDelegate(QStyledItemDelegate):
 
 
 class CustomBlockEditor(QWidget):
-    def __init__(self, filepath=None, some_function=None):
+    def __init__(self, filepath):
         super().__init__()
+
         self.filepath = filepath
-        self.some_function = some_function
+        self.categoryManager = CategoryManager()  # Initialize CategoryManager
+        self.categoryManager.initialize(filepath)
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
         self.initUI()
 
     def random_light_color(self):
@@ -28,6 +82,7 @@ class CustomBlockEditor(QWidget):
 
         # Block list
         self.blockList = QTreeWidget(self)
+        self.blockList.setMinimumHeight(600)
         self.blockList.setItemDelegate(CustomItemDelegate(self.blockList))  # install the custom delegate
 
         self.blockList.itemChanged.connect(self.itemChanged)
@@ -39,14 +94,8 @@ class CustomBlockEditor(QWidget):
         self.blockList.setDragDropMode(QTreeWidget.DragDropMode.InternalMove)
         gridLayout.addWidget(self.blockList, 0, 0, 2, 1)  # Spans two rows, one column
         # Adding items and sub-items
-        items = {
-            'General Settings': ['Display', 'Language'],
-            'Apperance': ['Category Color Scheme', 'StyleSheets & Themes'],
-            'Tables': ['Expenses', 'Income'],
-            'Budgetting': ['Budget Setup', 'Alerts'],
-            'Shortcuts': ['Overview', 'Editor'],
-            'Intnegrations': ['Financial Servecies', 'File management']
-        }
+
+        items = self.categoryManager.categories
 
         for parent, children in items.items():
             parentItem = QTreeWidgetItem(self.blockList, [parent])
@@ -55,14 +104,13 @@ class CustomBlockEditor(QWidget):
                 child_item = QTreeWidgetItem(parentItem, [child])
                 child_item.setBackground(0, self.random_light_color())
         self.blockList.setCurrentItem(self.blockList.topLevelItem(0))
+        self.expand_all_items(self.blockList)
 
         for i in range(self.blockList.topLevelItemCount()):
             top_item = self.blockList.topLevelItem(i)
             self.syncColors(top_item)
         # Button Layout
         buttonLayout = QHBoxLayout()
-
-
 
         # Add button layout to grid
         gridLayout.addLayout(buttonLayout, 2, 0)
@@ -109,8 +157,6 @@ class CustomBlockEditor(QWidget):
         verticalButtonLayout.addWidget(self.indentButton)
         verticalButtonLayout.addWidget(self.outdentButton)
 
-
-
         # Connect Up and Down button signals to slots
         self.upButton.clicked.connect(self.moveUp)
         self.downButton.clicked.connect(self.moveDown)
@@ -126,9 +172,37 @@ class CustomBlockEditor(QWidget):
         # Initially disable all buttons and the tree widget
         self.setEditMode(False)
 
+    def expand_all_items(self, tree_widget, item=None):
+        if item is None:
+            for i in range(tree_widget.topLevelItemCount()):
+                top_item = tree_widget.topLevelItem(i)
+                self.expand_all_items(tree_widget, top_item)
+        else:
+            item.setExpanded(True)
+            for i in range(item.childCount()):
+                child_item = item.child(i)
+                self.expand_all_items(tree_widget, child_item)
+
     def toggleEditMode(self):
         # Toggle the editing mode
         self.setEditMode(not self.blockList.isEnabled())
+
+    def updateCategoryManager(self):
+        self.categoryManager.categories = {}  # Clearing old categories
+        for i in range(self.blockList.topLevelItemCount()):
+            top_item = self.blockList.topLevelItem(i)
+            category_name = top_item.text(0)
+            sub_categories = []
+            for j in range(top_item.childCount()):
+                sub_item = top_item.child(j)
+                sub_categories.append(sub_item.text(0))
+            self.categoryManager.addCategory(category_name, sub_categories)
+
+    def saveCats(self):
+        self.updateCategoryManager()
+        self.categoryManager.saveCats()  # Save to the JSON file
+        self.categoryManager.backupCategories()  # Backup the current state
+        self.toggleEditMode()
 
     def setEditMode(self, enabled):
         # Enable/Disable the tree widget
@@ -148,11 +222,23 @@ class CustomBlockEditor(QWidget):
         # Enable the Edit Categories button if other buttons are disabled
         self.editButton.setEnabled(not enabled)
 
-    def saveCats(self):
-        print("Save Changes")
+    def restoreUIFromCategoryManager(self):
+        self.blockList.clear()  # Clear the current list
+        categories = self.categoryManager.getSavedCategories()
+        for parent, children in categories.items():
+            parentItem = QTreeWidgetItem(self.blockList, [parent])
+            parentItem.setBackground(0, self.random_light_color())
+            for child in children:
+                child_item = QTreeWidgetItem(parentItem, [child])
+                child_item.setBackground(0, self.random_light_color())
+
     def cancelCats(self):
-        print("Cancel Revert Changes")
+        #print("Cancel Revert Changes")
+        # Restore original categories
+        self.categoryManager.restoreCategories()
         self.toggleEditMode()
+        self.restoreUIFromCategoryManager()  # Restores the UI to the original state
+
     def addBlock(self):
         currentItem = self.blockList.currentItem()
         new_item = QTreeWidgetItem(["New Block"])
@@ -369,16 +455,3 @@ class CustomBlockEditor(QWidget):
                 # This is a top-level item, so it's a category. Remove all its children.
                 while currentItem.childCount() > 0:
                     currentItem.removeChild(currentItem.child(0))
-
-
-def main():
-    app = QApplication([])
-    window = QMainWindow()
-    custom_block_editor = CustomBlockEditor()
-    window.setCentralWidget(custom_block_editor)
-    window.show()
-    app.exec()
-
-
-if __name__ == '__main__':
-    main()
