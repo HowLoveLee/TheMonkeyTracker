@@ -6,6 +6,7 @@ from qframelesswindow import FramelessWindow, StandardTitleBar, AcrylicWindow
 from MonkeyMainFolder.Budget.ConditionalStatements import ConditionalStatements
 from MonkeyMainFolder.Expenses.ExpensePanel import ExpensePanel
 from MonkeyMainFolder.Income.IncomePanel import IncomePanel
+from MonkeyMainFolder.Settings.SignalBroker import SignalBroker
 from Settings.MainMonkeyMenuFunctions import MainMonkeyMenuFunctions
 from Settings.Shortcuts import Shortcuts
 from Settings.ProgramSettings import ProgramSettings
@@ -13,14 +14,16 @@ from Budget.BudgetPanel import BudgetPanel
 
 
 class CustomTitleBar(StandardTitleBar):
-
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, broker= None):
         super().__init__(parent)
+        self.menuFunctions = self.parent().menuFunctions
+        self.broker = broker
 
         self.menu_bar = QMenuBar(self)
+
         '''
-        
-        
+
+
         self.menu_bar.setStyleSheet("""
                            QMenuBar {
                                background-color: transparent;
@@ -68,7 +71,6 @@ class CustomTitleBar(StandardTitleBar):
         editMenu = QMenu("Edit", self)
         client = QMenu("Client", self)
 
-
         # File Menu Actions
         openAction = QAction("Open", self)
         newAction = QAction("New", self)
@@ -77,7 +79,6 @@ class CustomTitleBar(StandardTitleBar):
         exportToPDF = QAction("PDF Export", self)
         settings = QAction("Settings", self)
         exitAction = QAction("Exit", self)
-        self.menuFunctions = MainMonkeyMenuFunctions(self)
 
         # Set shortcuts
         openAction.setShortcut(Shortcuts.OPEN)
@@ -87,7 +88,6 @@ class CustomTitleBar(StandardTitleBar):
         exportToPDF.setShortcut(Shortcuts.EXPORT_TO_PDF)
         settings.setShortcut(Shortcuts.SETTINGS)
 
-        # Set Actions
         exitAction.triggered.connect(self.menuFunctions.onExitTriggered)
         openAction.triggered.connect(self.menuFunctions.openFile)
         saveAction.triggered.connect(self.menuFunctions.saveFile)
@@ -110,7 +110,6 @@ class CustomTitleBar(StandardTitleBar):
         fileMenu.addSeparator()
         fileMenu.addAction(exitAction)
         self.menu_bar.addMenu(fileMenu)
-
 
         # Edit menu actions
         undoEdit = QAction("Undo", self)
@@ -141,7 +140,7 @@ class CustomTitleBar(StandardTitleBar):
         editMenu.addAction(findExpense)
         self.menu_bar.addMenu(editMenu)
 
-        #What Will happen next lookin ahh
+        # What Will happen next lookin ahh
         clickMeButton = QAction('Click me', self)
         aboutMenu = QMenu('About', self)
         clickMeButton.triggered.connect(self.dialogAbout)
@@ -171,7 +170,7 @@ class CustomTitleBar(StandardTitleBar):
 
     def openSettings(self):
         print("Opening Settings...")  # Just for debugging
-        self.settings_window = ProgramSettings()
+        self.settings_window = ProgramSettings(self.broker, None)
         self.settings_window.show()
 
     def resizeEvent(self, event):
@@ -183,7 +182,10 @@ class MyWindow(FramelessWindow):
 
     def __init__(self):
         super().__init__()
-        self.setTitleBar(CustomTitleBar(self))
+        self.broker = SignalBroker()
+
+        self.menuFunctions = MainMonkeyMenuFunctions(self)
+        self.setTitleBar(CustomTitleBar(self, self.broker))
         self.setObjectName("MyMainWindow")
 
         # Ignore this
@@ -198,8 +200,9 @@ class MyWindow(FramelessWindow):
         centralWidget = QWidget()  # Create a central widget
         centralWidget.setLayout(mainLayout)  # Set the layout to the central widget
 
-        self.expensePanel = ExpensePanel()
+        self.expensePanel = ExpensePanel(None, self.broker)
         self.incomePanel = IncomePanel()
+
         splitter = CustomSplitter(Qt.Orientation.Vertical, self)
         splitter.addWidget(self.expensePanel)
         splitter.addWidget(self.incomePanel)

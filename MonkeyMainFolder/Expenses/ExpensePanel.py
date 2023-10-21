@@ -7,7 +7,10 @@ from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QStandardItemModel, QStandardItem, QDoubleValidator, QPalette, QColor, QIcon
 from PyQt6.QtWidgets import (QWidget, QTableWidget, QVBoxLayout, QHBoxLayout, QComboBox,
                              QPushButton, QSizePolicy, QLabel, QItemDelegate, QLineEdit, QStyledItemDelegate, QDateEdit,
-                             QFileDialog, QTableWidgetItem, QHeaderView)
+                             QFileDialog, QTableWidgetItem, QHeaderView, QTableWidgetSelectionRange, QMessageBox)
+
+from MonkeyMainFolder.Settings.CustomPanels.CustomBlockEditor import CategoryManager
+from MonkeyMainFolder.Settings.Shortcuts import Shortcuts
 
 
 class MoneyItemDelegate(QStyledItemDelegate):
@@ -74,14 +77,67 @@ class DateDelegate(QItemDelegate):
 
 class ExpensePanel(QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, signal_broker=None):
         super(ExpensePanel, self).__init__(parent)
 
         self.expenseTable = CustomTableWidget(1, 8)
         self.totalExpensesLabel = QLabel("Total: $0.00")
         self.committedTotalExpensesLabel = QLabel("Committed Total: $0.00")
 
+        self.categoryManager = CategoryManager()
+        self.categoryManager.cats_saved.connect(self.RefreshCats)  # Connect custom signal to refreshCats method
+
+        self.categoryManager.initialize('C:/Dev/PythonProjects/TheMonkeyTracker/MonkeyMainFolder/Settings/JSONS/'
+                                        'expensesEditor.json')
+        self.signal_broker = signal_broker
+        if self.signal_broker:
+            self.signal_broker.global_cats_saved.connect(self.RefreshCats)
+        self.categoryManager.loadCats()
         self.setupUi()
+
+    def RefreshCats(self):
+        print("RefreshCats has been called")
+
+        # Step 1: Read the updated JSON and refresh CategoryManager
+        self.categoryManager.loadCats()
+
+        # Step 2: Iterate over rows to get each dropdown
+        rowCount = self.expenseTable.rowCount()
+        for row in range(rowCount):
+            comboBox = self.expenseTable.cellWidget(row, 0)  # Assuming the dropdown is in column 0
+
+            # Step 3: Store the current selection
+            current_category = comboBox.currentText()
+
+            # Step 4: Clear the existing items in the dropdown
+            comboBox.clear()
+
+            # Step 4.1: Create a new model for the combo box to enforce hierarchy and selectable status
+            model = QStandardItemModel()
+
+            for category, subcategories in self.categoryManager.categories.items():
+                category_item = QStandardItem(category)
+
+                if subcategories:  # If there are subcategories
+                    category_item.setSelectable(False)
+                    category_item.setEnabled(False)
+                else:  # If there are no subcategories
+                    category_item.setSelectable(True)
+                    category_item.setEnabled(True)
+
+                model.appendRow(category_item)
+
+                for subcategory in subcategories:
+                    subcategory_item = QStandardItem(f"  {subcategory}")
+                    model.appendRow(subcategory_item)
+
+            # Step 4.2: Apply the new model to the combo box
+            comboBox.setModel(model)
+
+            # Step 5: Restore the selection
+            index = comboBox.findText(current_category)
+            if index >= 0:
+                comboBox.setCurrentIndex(index)
 
     def setupExpenseTable(self, table):
         table.setHorizontalHeaderLabels(
@@ -98,7 +154,6 @@ class ExpensePanel(QWidget):
         table.setColumnWidth(5, 100)  # Receipt column
         table.setColumnWidth(6, 100)  # Total column
         table.setColumnWidth(7, 100)  # Commit column
-
 
         # Set other columns to stretch
         for index in [0, 1, 2]:
@@ -157,20 +212,22 @@ class ExpensePanel(QWidget):
 
         addButton = QPushButton("Add Expense")
         deleteButton = QPushButton("Delete Expense")
-        statisticsButton = QPushButton("Run Statistics")
         commitAllButton = QPushButton("Commit All Expenses")
+        testButton = QPushButton("Test button")
 
         # Connect buttons to their respective slots
         addButton.clicked.connect(self.addExpenseRow)
         deleteButton.clicked.connect(self.deleteExpenseRow)
-        statisticsButton.clicked.connect(self.StatButtonClicked)
+        testButton.clicked.connect(self.testbuttonClicked)
         commitAllButton.clicked.connect(self.commitAllButtonClicked)
 
+        addButton.setShortcut(Shortcuts.ADD_ROW)
+        deleteButton.setShortcut(Shortcuts.DELETE_ROW)
 
         buttonLayout.addWidget(addButton)
         buttonLayout.addWidget(deleteButton)
         buttonLayout.addWidget(commitAllButton)
-        buttonLayout.addWidget(statisticsButton)
+        buttonLayout.addWidget(testButton)
         buttonLayout.addWidget(self.totalExpensesLabel)
         buttonLayout.addWidget(self.committedTotalExpensesLabel)
 
@@ -214,6 +271,7 @@ class ExpensePanel(QWidget):
             # Update the commit button status for the row
             commitButton.setEnabled(False)
             commitButton.setStyleSheet("background-color: green;")
+            commitButton.setText("Committed")
 
         # Update totals after committing all eligible rows
         self.updateTotalLabels()
@@ -243,6 +301,7 @@ class ExpensePanel(QWidget):
             total += float(value)
 
         return total, committed_total
+
     def addExpenseRow(self):
         rowPosition = self.expenseTable.rowCount()
         self.expenseTable.insertRow(rowPosition)
@@ -273,12 +332,76 @@ class ExpensePanel(QWidget):
         commitButton.clicked.connect(lambda _, b=commitButton: self.commitButtonClicked(b))
         self.expenseTable.setCellWidget(rowPosition, 7, commitButton)
 
+
     def deleteExpenseRow(self):
         selectedRows = self.expenseTable.selectionModel().selectedRows()
-        for index in selectedRows:
-            self.expenseTable.removeRow(index.row())
-        # Update totals after deletion
+        committed_rows = []
+        uncommitted_rows = []
+
+        if not selectedRows:  # If no row is selected, remove the last row
+            last_row = self.expenseTable.rowCount() - 1
+            if last_row >= 0:  # Check if the table is not empty
+                if self.isRowCommitted(last_row):  # Use the function to check
+                    if not self.showDeleteCommittedRowDialog([last_row]):
+                        return
+                self.expenseTable.removeRow(last_row)
+        else:
+            selectedRows = sorted(selectedRows, key=lambda x: x.row(), reverse=True)
+
+            for index in selectedRows:
+                row_number = index.row()
+
+                if self.isRowCommitted(row_number):
+                    committed_rows.append(row_number)
+                else:
+                    uncommitted_rows.append(row_number)
+
+            if committed_rows:  # If there are any committed rows
+                response = self.showDeleteCommittedRowDialog(committed_rows, bool(uncommitted_rows))
+                if response == "Cancel":
+                    return
+                elif response == "DeleteUncommitted":
+                    for row in uncommitted_rows:
+                        self.expenseTable.removeRow(row)
+                    return
+
+            # If we reached this point, delete all selected rows
+            for index in selectedRows:
+                self.expenseTable.removeRow(index.row())
+
         self.updateTotalLabels()
+
+    def showDeleteCommittedRowDialog(self, committed_rows, has_uncommitted=False):
+        plural = "s" if len(committed_rows) > 1 else ""
+        rows_str = ", ".join(map(str, committed_rows))
+
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setText(f"You are trying to delete committed row{plural}: {rows_str}")
+        msg.setWindowTitle("Delete Committed Row")
+
+        okButton = msg.addButton("OK", QMessageBox.ButtonRole.AcceptRole)
+        cancelButton = msg.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
+
+        if has_uncommitted:
+            deleteUncommittedButton = msg.addButton("Delete only uncommitted lines", QMessageBox.ButtonRole.ActionRole)
+
+        msg.exec()
+
+        if msg.clickedButton() == okButton:
+            return "OK"
+        elif msg.clickedButton() == cancelButton:
+            return "Cancel"
+        elif has_uncommitted and msg.clickedButton() == deleteUncommittedButton:
+            return "DeleteUncommitted"
+
+    def isRowCommitted(self, row):
+        commitButton = self.expenseTable.cellWidget(row, 7)  # Assuming the button is in column 7
+        if isinstance(commitButton, QPushButton):
+            return commitButton.text() == "Committed"
+        return False
+
+
 
     def receiptButtonClicked(self, button):
         if hasattr(button, "receipt_path"):  # Check if the button has a stored path
@@ -331,36 +454,31 @@ class ExpensePanel(QWidget):
         self.updateTotalLabels()
 
     def createTypeDropdown(self):
-
         comboBox = QComboBox()
         model = QStandardItemModel()
 
-        categories = {
-            "Banking": ["Credit Payments", "Zelle", "Xoom"],
-            "House": ["Rent", "Utilities"],
-            "Transportation": ["Fuel", "Auto Insurance", "Maintenance/Repairs"],
-            "Food": ["Groceries", "Dining Out", "Coffee Shops"],
-            "Entertainment": ["Movie Theaters", "Video Games", "Streaming Services"],
-            "Mobile Service": [],
-            "Clothing": [],
-            "Education": ["Tuition Fees"],
-            "Investments & Savings": ["Stocks", "Savings Accounts", "Business Transactions"],
-            "Travel": ["Flights", "Hotels"],
-            "Miscellaneous": ["Gifts/Donations", "Home Decor"],
-            "Pets": []
-        }
+        # Replace the hard-coded categories with those read from CategoryManager
+        categories = self.categoryManager.categories
 
         for category, subcategories in categories.items():
             category_item = QStandardItem(category)
-            category_item.setSelectable(False)  # make the main category non-selectable
-            category_item.setEnabled(False)  # make the item appear slightly grayed out
+
+            if subcategories:  # If there are subcategories
+                category_item.setSelectable(False)
+                category_item.setEnabled(False)
+            else:  # If there are no subcategories
+                category_item.setSelectable(True)
+                category_item.setEnabled(True)
+
             model.appendRow(category_item)
 
             for subcategory in subcategories:
                 subcategory_item = QStandardItem(f"  {subcategory}")
                 model.appendRow(subcategory_item)
+
         comboBox.setMaxVisibleItems(30)
         comboBox.setModel(model)
+
         return comboBox
 
     def getTypes(self):
@@ -403,10 +521,8 @@ class ExpensePanel(QWidget):
 
         # print("Finished RowCreator")  # End of function
 
-    def StatButtonClicked(self):
-        print("Working")
-        data = self.getCommittedExpenseData()
-        # viewStats(self)
+    def testbuttonClicked(self):
+        print("Testing Button adding Rando Shit to it. ")
 
     def headerDoubleClicked(self, logicalIndex):
 
@@ -433,10 +549,6 @@ class ExpensePanel(QWidget):
 
         elif logicalIndex == 3:  # If the 'Due Date' header is double-clicked
             self.expenseTable.sortItems(logicalIndex, Qt.SortOrder.AscendingOrder)
-
-    def launchStatsView(self, data):
-        print("Steve")
-        # launch_view(data, self.getDetailedExpensesForType)
 
     def getCommittedExpenseData(self):
         data = {}
@@ -472,6 +584,12 @@ class ExpensePanel(QWidget):
         # Write expenses to a file
         with open('expense_data.txt', 'w') as f:
             json.dump(expenses, f)
+
+    def select_all_rows(self):
+        row_count = self.expenseTable.rowCount()
+        if row_count > 0:
+            selection_range = QTableWidgetSelectionRange(0, 0, row_count - 1, self.expenseTable.columnCount() - 1)
+            self.expenseTable.setRangeSelected(selection_range, True)
 
     def getDetailedExpensesForType(self, expense_type):
         detailed_expenses = []

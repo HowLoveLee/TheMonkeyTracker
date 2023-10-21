@@ -3,22 +3,23 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSplitter,
                              QLineEdit, QLabel, QStackedWidget, QPushButton,
                              QTreeWidget, QTreeWidgetItem, QFrame)
 
-from MonkeyMainFolder.Settings.CustomBlockEditor import CustomBlockEditor
-from MonkeyMainFolder.Settings.Customlabel import ClickableLabel
-from MonkeyMainFolder.Settings.CustomShortCutEditor import CustomShortCutEditor
+from MonkeyMainFolder.Settings.CustomPanels.CustomBlockEditor import CustomBlockEditor
+from MonkeyMainFolder.Settings.CustomPanels.Customlabel import ClickableLabel
+from MonkeyMainFolder.Settings.CustomPanels.CustomShortCutEditor import CustomShortCutEditor
 
 
 class ProgramSettings(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, broker, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Settings")
+        self.broker = broker
         self.setGeometry(100, 100, 800, 600)  # Set default position and size
         self.setMinimumSize(1,500)
 
         self.expensesEditor = CustomBlockEditor("C:/Dev/PythonProjects/TheMonkeyTracker/MonkeyMainFolder/Settings"
-                                                "/JSONS/expensesEditor.json")
+                                                "/JSONS/expensesEditor.json", self.broker)
         self.incomeEditor = CustomBlockEditor("C:/Dev/PythonProjects/TheMonkeyTracker/MonkeyMainFolder/Settings/JSONS"
-                                              "/incomeEditor.json")
+                                              "/incomeEditor.json",None)
         self.budgetEditor = CustomBlockEditor("C:/Dev/PythonProjects/TheMonkeyTracker/MonkeyMainFolder/Settings/JSONS"
                                               "/budgetEditor.json")
         self.shortcutEditor = CustomShortCutEditor("C:/Dev/PythonProjects/TheMonkeyTracker/MonkeyMainFolder/Settings"

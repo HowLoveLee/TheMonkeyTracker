@@ -12,8 +12,10 @@ class Shortcuts:
     CUT = "Ctrl+X"
     COPY = "Ctrl+C"
     PASTE = "Ctrl+V"
-    SELECT_ALL = "Ctrl+A"
+    SELECT_ALL = "Ctrl+Shift+A"
     DELETE = "DELETE"
+    ADD_ROW = "Ctrl+A"
+    DELETE_ROW = "Ctrl+D"
 
 
 
