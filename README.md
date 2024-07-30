@@ -1,5 +1,5 @@
 # 🐒 MonkeyTracker: Budget & Expense Tracker
-
+# This project is currently broken, I reworking many things. Will update in the future.
 Hello, this is my first Python project hope you enjoy it. if you try it out and have any ideas I could or feature implementation just shoot me a message and I will see about it. Yes, I am new the code is not the cleanest. Since it's my first project in this language. As I add more features I will work on breaking down the files.
 
 MonkeyTracker is a tool designed to help you keep track of your expenses and how much money is coming in.
